@@ -12,8 +12,6 @@ on:
       - 'HelpSource/**'
       - 'sounds/**'
       - '*.md'
-  schedule:
-    - cron: '0 0 * * 0' # run weekly to refresh cache
 
 jobs:
   lint:
@@ -33,7 +31,7 @@ jobs:
         with:
           python-version: '3.10'
 
-      - uses: pre-commit/action@v3.0.0
+      - uses: pre-commit/action@v3.0.1
         name: 'Run pre-commit'
         env:
           FULL_CHECK: 1
@@ -80,14 +78,14 @@ jobs:
     needs: [version-getter, build-linux]
     uses: ./.github/workflows/test_linux.yml
     with:
-      artifact-file: "SuperCollider-${{ needs.version-getter.outputs.sc-version }}-linux-jammy-gcc12"
+      artifact-file: "SuperCollider-${{ needs.version-getter.outputs.sc-version }}-ubuntu-22.04-gcc12"
     secrets: inherit
 
   test-macos:
     needs: [version-getter, build-macos]
     uses: ./.github/workflows/test_macos.yml
     with:
-      artifact-file: "SuperCollider-${{ needs.version-getter.outputs.sc-version }}-macOS-universal.dmg"
+      artifact-file: "SuperCollider-${{ needs.version-getter.outputs.sc-version }}-macOS-x64.dmg"
     secrets: inherit
 
   # test-windows:
@@ -102,18 +100,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - artifact-suffix: macOS-universal
+          - artifact-suffix: macOS-x64
             s3-os-name: osx
             s3-artifact-suffx: ''
             s3-artifact-extension: 'dmg'
             artifact-extension: '.dmg' # for download-artifacts action, for non-zip only, should include `.`
-            s3-create-latest-link: true # create link to pointing to the "latest" build; activate only one per branch per s3-os-name
-
-          - artifact-suffix: win32
-            s3-os-name: win32
-            s3-artifact-suffx: ''
-            s3-artifact-extension: 'zip'
-            s3-create-latest-link: true # create link to pointing to the "latest" build
+            s3-create-latest-link: true # create link to pointing to the "latest" build; activate only one per branch per s3-os-name  
 
           - artifact-suffix: win64
             s3-os-name: win64
@@ -214,9 +206,7 @@ jobs:
             ${{ env.INSTALL_PATH }}/${{ env.ARTIFACT_FILE_PREFIX }}-macOS-universal.dmg/*
             ${{ env.INSTALL_PATH }}/${{ env.ARTIFACT_FILE_PREFIX }}-macOS-arm64.dmg/*
             ${{ env.INSTALL_PATH }}/${{ env.ARTIFACT_FILE_PREFIX }}-macOS-x64-legacy.dmg/*
-            ${{ env.INSTALL_PATH }}/${{ env.ARTIFACT_FILE_PREFIX }}-win32-installer/*
             ${{ env.INSTALL_PATH }}/${{ env.ARTIFACT_FILE_PREFIX }}-win64-installer/*
-            ${{ env.INSTALL_PATH }}/${{ env.ARTIFACT_FILE_PREFIX }}-win32/*
             ${{ env.INSTALL_PATH }}/${{ env.ARTIFACT_FILE_PREFIX }}-win64/*
           draft: true
         env:
